@@ -101,7 +101,7 @@ func _main(args []string, env envConfig) int {
 
 	keptnOptions.ConfigurationServiceURL = env.ConfigurationServiceUrl
 
-	log.Printf("[main.go] 18:59 build")
+	log.Printf("[main.go] 19:04 build")
 	log.Printf("[main.go] Starting %s...", ServiceName)
 	log.Printf("[main.go]     on Port = %d; Path=%s", env.Port, env.Path)
 
