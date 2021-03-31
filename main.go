@@ -19,7 +19,7 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 		parseKeptnCloudEventPayload(event, eventData)
 
 		// Handle evaluation.finished and return any errors
-    // See eventhandlers.go
+                // See eventhandlers.go
 		return HandleEvaluationFinishedEvent(myKeptn, event, eventData)
     
 }
