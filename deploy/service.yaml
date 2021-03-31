@@ -33,6 +33,16 @@ spec:
                 secretKeyRef:
                   name: jira-details
                   key: jira-username
+            - name: JIRA_ASSIGNEE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jira-details
+                  key: jira-assignee-user-id
+            - name: JIRA_REPORTER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jira-details
+                  key: jira-reporter-user-id
             - name: JIRA_API_TOKEN
               valueFrom:
                 secretKeyRef:
