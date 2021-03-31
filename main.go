@@ -51,8 +51,16 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 
 	switch event.Type() {
 
-	case keptnv2.GetFinishedEventType(keptnv2.EvaluationTaskName):
-		log.Printf("[main.go] Processing Evaluation.Finished Event")
+	case keptnv2.GetTriggeredEventType(keptnv2.EvaluationTaskName): // sh.keptn.event.evaluation.triggered
+		log.Printf("Processing Evaluation.Triggered Event")
+
+		eventData := &keptnv2.EvaluationTriggeredEventData{}
+		parseKeptnCloudEventPayload(event, eventData)
+
+		return HandleEvaluationTriggeredEvent(myKeptn, event, eventData)
+
+	case keptnv2.GetFinishedEventType(keptnv2.EvaluationTaskName): // sk.keptn.event.evaluation.finished
+		log.Printf("Processing Evaluation.Finished Event")
 
 		eventData := &keptnv2.EvaluationFinishedEventData{}
 		parseKeptnCloudEventPayload(event, eventData)
@@ -93,6 +101,7 @@ func _main(args []string, env envConfig) int {
 
 	keptnOptions.ConfigurationServiceURL = env.ConfigurationServiceUrl
 
+	log.Printf("[main.go] 17:37 build")
 	log.Printf("[main.go] Starting %s...", ServiceName)
 	log.Printf("[main.go]     on Port = %d; Path=%s", env.Port, env.Path)
 
@@ -124,7 +133,7 @@ func _main(args []string, env envConfig) int {
 func parseKeptnCloudEventPayload(event cloudevents.Event, data interface{}) error {
 	err := event.DataAs(data)
 	if err != nil {
-		log.Fatalf("[main.go] Got Data Error: %s", err.Error())
+		log.Fatalf("Got Data Error: %s", err.Error())
 		return err
 	}
 	return nil
