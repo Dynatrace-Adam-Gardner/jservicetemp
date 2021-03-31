@@ -1,5 +1,9 @@
 # jservicetemp
 
+![image](https://user-images.githubusercontent.com/13639658/113127685-5ffd1480-925c-11eb-8e25-1a2032c3d715.png)
+
+## Create Secret
+
 Requires a secret called `jira-details` in `keptn` namespace:
 
 ```
