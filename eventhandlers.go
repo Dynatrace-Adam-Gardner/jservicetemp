@@ -4,6 +4,8 @@ import (
 	"fmt"
 	cloudevents "github.com/cloudevents/sdk-go/v2" // make sure to use v2 cloudevents here
 	keptnv2 "github.com/keptn/go-utils/pkg/lib/v0_2_0"
+	jira "gopkg.in/andygrunwald/go-jira.v1"
+	"io/ioutil"
 	"log"
 )
 
@@ -47,7 +49,6 @@ func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudev
 	// 2. Do work
 	//------------------------------------
 
-
 	//------------------------------------
 	// 3. Send task finished event
 	//------------------------------------
@@ -78,6 +79,50 @@ func createJIRATicket(summary string, description string) string {
 
 	log.Println("[eventhandlers.go] Creating JIRA Ticket Now...")
 
-	return ""
+	tp := jira.BasicAuthTransport{
+		Username: JIRA_DETAILS.Username,
+		Password: JIRA_DETAILS.APIToken,
+	}
+
+	jiraClient, err := jira.NewClient(tp.Client(), JIRA_DETAILS.BaseURL)
+	if err != nil {
+		panic(err)
+	}
+
+	i := jira.Issue{
+		Fields: &jira.IssueFields{
+			Assignee: &jira.User{
+				AccountID: JIRA_DETAILS.AssigneeID,
+			},
+			Reporter: &jira.User{
+				AccountID: JIRA_DETAILS.ReporterID,
+			},
+			Description: description,
+			Type: jira.IssueType{
+				Name: JIRA_DETAILS.IssueType,
+			},
+			Project: jira.Project{
+				Key: JIRA_DETAILS.ProjectKey,
+			},
+			Summary: summary,
+		},
+	}
+
+	// Create ticket
+	issue, response, err := jiraClient.Issue.Create(&i)
+
+	if err != nil {
+		bodyBytes, err2 := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Println(err2)
+		}
+		bodyString := string(bodyBytes)
+		log.Println(bodyString)
+		log.Println(err)
+	} else {
+		log.Println("[eventhandlers.go] Created ticket successfully: ", issue.Key)
+	}
+
+	return issue.Key
 
 }
