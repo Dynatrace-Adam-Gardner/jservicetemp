@@ -1,20 +1,12 @@
 package main
 
-/* For backwards compatibility, we need to cater for the following legacy events:
-*  - "sh.keptn.events.evaluation-done"
-*  - "sh.keptn.event.problem.open"
-*  - sh.keptn.events.problem"
-*
-*  And the following new event types:
-* - "sh.keptn.event.evaluation.finished"
-* - "sh.keptn.event.jira-service.triggered"
- */
-
-import (
+ import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2" // make sure to use v2 cloudevents here
 	"github.com/kelseyhightower/envconfig"
@@ -36,6 +28,26 @@ type envConfig struct {
 	ConfigurationServiceUrl string `envconfig:"CONFIGURATION_SERVICE" default:""`
 }
 
+type JiraDetails struct {
+	BaseURL              string
+	Username             string
+	APIToken             string
+	AssigneeID           string
+	ReporterID           string
+	ProjectKey           string
+	IssueType            string
+	TicketForProblems    bool
+	TicketForEvaluations bool
+}
+
+type KeptnDetails struct {
+	KeptnDomain    string
+	KeptnBridgeURL string
+}
+
+var JIRA_DETAILS JiraDetails
+var KEPTN_DETAILS KeptnDetails
+
 // ServiceName specifies the current services name (e.g., used as source when sending CloudEvents)
 const ServiceName = "jira-service"
 
@@ -48,6 +60,8 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 	if err != nil {
 		return errors.New("Could not create Keptn Handler: " + err.Error())
 	}
+
+	setupAndDebug(myKeptn, event)
 
 	switch event.Type() {
 
@@ -137,4 +151,87 @@ func parseKeptnCloudEventPayload(event cloudevents.Event, data interface{}) erro
 		return err
 	}
 	return nil
+}
+
+func setJIRADetails() {
+	JIRA_DETAILS.BaseURL = os.Getenv("JIRA_BASE_URL")
+	JIRA_DETAILS.Username = os.Getenv("JIRA_USERNAME")
+	JIRA_DETAILS.AssigneeID = os.Getenv("JIRA_ASSIGNEE_ID")
+	JIRA_DETAILS.ReporterID = os.Getenv("JIRA_REPORTER_ID")
+	JIRA_DETAILS.APIToken = os.Getenv("JIRA_API_TOKEN")
+	JIRA_DETAILS.ProjectKey = os.Getenv("JIRA_PROJECT_KEY")
+	JIRA_DETAILS.IssueType = os.Getenv("JIRA_ISSUE_TYPE")
+	JIRA_DETAILS.TicketForProblems, _ = strconv.ParseBool(os.Getenv("JIRA_TICKET_FOR_PROBLEMS"))
+	JIRA_DETAILS.TicketForEvaluations, _ = strconv.ParseBool(os.Getenv("JIRA_TICKET_FOR_EVALUATIONS"))
+}
+
+func setKeptnDetails() {
+	KEPTN_DETAILS.KeptnDomain = os.Getenv("KEPTN_DOMAIN")
+
+	// If Bridge URL isn't set in YAML file, default to the KEPTN_DOMAIN which is mandatory
+	if os.Getenv("KEPTN_BRIDGE_URL") == "" {
+		KEPTN_DETAILS.KeptnBridgeURL = os.Getenv("KEPTN_DOMAIN")
+	} else {
+		KEPTN_DETAILS.KeptnBridgeURL = os.Getenv("KEPTN_BRIDGE_URL")
+	}
+}
+
+func setupAndDebug(myKeptn *keptnv2.Keptn, incomingEvent cloudevents.Event) {
+	log.Printf("[main.go] gotEvent(%s): %s - %s", incomingEvent.Type(), myKeptn.KeptnContext, incomingEvent.Context.GetID())
+
+	// Get Debug Mode
+	// This is set in the service.yaml as DEBUG "true"
+	DEBUG, _ := strconv.ParseBool(os.Getenv("DEBUG"))
+	log.Printf("[main.go] Debug Mode: %v \n", DEBUG)
+
+	// Set JIRA Details
+	setJIRADetails()
+
+	// Get Dynatrace Tenant
+	dynaTraceTenant := os.Getenv("DT_TENANT")
+
+	// KEPTN_DOMAIN must be set but KEPTN_BRIDGE_URL is optional in jira-service deployment.yaml file
+	setKeptnDetails()
+
+	if JIRA_DETAILS.BaseURL == "" ||
+		JIRA_DETAILS.Username == "" ||
+		JIRA_DETAILS.APIToken == "" ||
+		JIRA_DETAILS.ProjectKey == "" ||
+		JIRA_DETAILS.IssueType == "" ||
+		KEPTN_DETAILS.KeptnDomain == "" {
+		fmt.Println("[main.go] Missing mandatory input parameters JIRA_BASE_URL and / or JIRA_USERNAME and / or JIRA_API_TOKEN and / or JIRA_PROJECT_KEY and / or JIRA_ISSUE_TYPE and / or KEPTN_DOMAIN.")
+	}
+
+	if DEBUG {
+		fmt.Println("[main.go] --- Printing JIRA Input Details ---")
+		fmt.Printf("[main.go] Base URL: %s \n", JIRA_DETAILS.BaseURL)
+		fmt.Printf("[main.go] Username: %s \n", JIRA_DETAILS.Username)
+		fmt.Printf("[main.go] Assignee ID: %s \n", JIRA_DETAILS.AssigneeID)
+		fmt.Printf("[main.go] Reporter ID: %s \n", JIRA_DETAILS.ReporterID)
+		fmt.Printf("[main.go] API Token: %s \n", JIRA_DETAILS.APIToken)
+		fmt.Printf("[main.go] Project Key: %s \n", JIRA_DETAILS.ProjectKey)
+		fmt.Printf("[main.go] Issue Type: %s \n", JIRA_DETAILS.IssueType)
+		fmt.Printf("[main.go] Ticket For Problems: %v \n", JIRA_DETAILS.TicketForProblems)
+		fmt.Printf("[main.go] Ticket For Problems: %v \n", JIRA_DETAILS.TicketForEvaluations)
+		fmt.Println("[main.go] --- End Printing JIRA Input Details ---")
+
+		fmt.Printf("[main.go] Dynatrace Tenant: %s \n", dynaTraceTenant)
+		fmt.Printf("[main.go] Keptn Domain: %s \n", KEPTN_DETAILS.KeptnDomain)
+		fmt.Printf("[main.go] Keptn Bridge URL: %s \n", KEPTN_DETAILS.KeptnBridgeURL)
+
+	    // At this point, we have all mandatory input params. Proceed
+		fmt.Println("[main.go] Got all input variables. Proceeding...")
+
+		if JIRA_DETAILS.TicketForProblems {
+		  fmt.Println("[main.go] Will create tickets for problems")
+	    } else {
+		  fmt.Println("[main.go] Will NOT create tickets for problems")
+	    }
+
+		if JIRA_DETAILS.TicketForEvaluations {
+		  fmt.Println("[main.go] Will create tickets for evaluations")
+	    } else {
+		  fmt.Println("[main.go] Will NOT create tickets for evaluations")
+	    }
+    }
 }
