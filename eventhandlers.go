@@ -10,11 +10,11 @@ func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudev
 	//------------------------------------
 	myKeptn.SendTaskStartedEvent(data, ServiceName)
   
-  //------------------------------------
-  // 2. Do work (this part works)
-  //------------------------------------
+        //------------------------------------
+        // 2. Do work (this part works)
+        //------------------------------------
   
-  //------------------------------------
+        //------------------------------------
 	// 3. Send task finished event
 	//------------------------------------
 	myKeptn.SendTaskFinishedEvent(data, ServiceName)
