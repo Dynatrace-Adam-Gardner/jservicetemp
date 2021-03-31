@@ -40,10 +40,15 @@ func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudev
 	// 2. Do work
 	//------------------------------------
 
+
 	//------------------------------------
 	// 3. Send task finished event
 	//------------------------------------
-	_, err := myKeptn.SendTaskFinishedEvent(data, ServiceName)
+	_, err := myKeptn.SendTaskFinishedEvent(&keptnv2.EventData{
+		Status:  keptnv2.StatusSucceeded,
+		Result:  keptnv2.ResultPass,
+		Message: "jira-service finished....",
+	}, ServiceName)
 
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to send task finished CloudEvent (%s), aborting...", err.Error())
@@ -55,9 +60,7 @@ func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudev
 }
 
 func createJIRATicket(summary string, description string) string {
-
 	log.Println("[eventhandlers.go] Creating JIRA Ticket Now...")
-
 	return ""
 
 }
