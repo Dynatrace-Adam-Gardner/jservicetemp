@@ -15,7 +15,7 @@ func HandleEvaluationTriggeredEvent(myKeptn *keptnv2.Keptn, incomingEvent cloude
   //------------------------------------
   // 1. Send task started event
   //------------------------------------
-	_, err := myKeptn.SendTaskStartedEvent(nil, ServiceName)
+	_, err := myKeptn.SendTaskStartedEvent(data, ServiceName)
 
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to send task started CloudEvent (%s), aborting...", err.Error())
