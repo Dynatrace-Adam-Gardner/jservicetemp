@@ -9,6 +9,7 @@ import (
 
 func HandleEvaluationTriggeredEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudevents.Event, data *keptnv2.EvaluationTriggeredEventData) error {
 	log.Println("Handling evaluation.triggered Event: %s", incomingEvent.Context.GetID())
+	log.Println("[eventhandlers.go] HandleEvaluationTriggeredEvent Incoming Event Type: ", incomingEvent.Type())
 	// Got sh.keptn.event.evaluation.triggered
 	// Send a jira-service.started event
 
@@ -32,7 +33,9 @@ func HandleEvaluationTriggeredEvent(myKeptn *keptnv2.Keptn, incomingEvent cloude
 }
 
 func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudevents.Event, data *keptnv2.EvaluationFinishedEventData) error {
-	log.Println("Handling evaluation.finished Event: %s", incomingEvent.Context.GetID())
+	log.Println("[eventhandlers.go] Handling evaluation.finished Event: %s", incomingEvent.Context.GetID())
+
+	log.Println("[eventhandlers.go] HandleEvaluationFinishedEvent Incoming Event Type: ", incomingEvent.Type())
 
 	if incomingEvent.Source() == ServiceName {
 		// skip evaluation.finished, it has been sent out by jira-service
@@ -49,9 +52,6 @@ func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudev
 	// 3. Send task finished event
 	//------------------------------------
 	outputData := &keptnv2.EventData{
-		Project: "sockshop",
-		Service: "carts",
-		Stage: "staging",
 		Status:  keptnv2.StatusSucceeded,
 		Result:  keptnv2.ResultPass,
 		Message: "jira-service finished....",
@@ -59,10 +59,11 @@ func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudev
 
 	log.Println("Printing task finished data object")
 	log.Println(outputData)
+	log.Println("-----------------------------------")
 
 	id, err := myKeptn.SendTaskFinishedEvent(outputData, ServiceName)
 
-	log.Println("Task Finished ID: ", id)
+	log.Println("[eventhandlers.go] Task Finished ID: ", id)
 
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to send task finished CloudEvent (%s), aborting...", err.Error())
@@ -76,6 +77,7 @@ func HandleEvaluationFinishedEvent(myKeptn *keptnv2.Keptn, incomingEvent cloudev
 func createJIRATicket(summary string, description string) string {
 
 	log.Println("[eventhandlers.go] Creating JIRA Ticket Now...")
+
 	return ""
 
 }
