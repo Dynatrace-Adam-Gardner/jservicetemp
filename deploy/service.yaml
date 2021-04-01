@@ -74,6 +74,12 @@ spec:
                   name: dynatrace
                   key: DT_TENANT
                   optional: true
+            - name: DT_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: dynatrace
+                  key: DT_API_TOKEN
+                  optional: true
             - name: KEPTN_DOMAIN
               value: 'http://1.2.3.4'
             - name: KEPTN_BRIDGE_URL
