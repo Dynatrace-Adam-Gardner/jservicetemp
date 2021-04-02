@@ -1,14 +1,25 @@
 package main
 
- import (
+/* For backwards compatibility, we need to cater for the following legacy events:
+*  - "sh.keptn.events.evaluation-done"
+*  - "sh.keptn.event.problem.open"
+*  - sh.keptn.events.problem"
+*
+*  And the following new event types:
+* - "sh.keptn.event.evaluation.finished"
+* - "sh.keptn.event.jira-service.triggered"
+ */
+
+import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
+
 	cloudevents "github.com/cloudevents/sdk-go/v2" // make sure to use v2 cloudevents here
 	"github.com/kelseyhightower/envconfig"
+
 	keptn "github.com/keptn/go-utils/pkg/lib/keptn"
 	keptnv2 "github.com/keptn/go-utils/pkg/lib/v0_2_0"
 )
@@ -63,14 +74,19 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 
 	switch event.Type() {
 
-	case keptnv2.GetTriggeredEventType(keptnv2.EvaluationTaskName): // sh.keptn.event.evaluation.triggered
-		log.Printf("Processing Evaluation.Triggered Event")
+	// Listen for remediation.finished
+	case keptnv2.GetFinishedEventType(keptnv2.RemediationTaskName): // sh.keptn.event.remediation.finished
+		log.Printf("Processing Remediation.Finished Event")
+		// Please note: Processing .started, .status.changed and .finished events is only recommended when you want to
+		// notify an external service (e.g., for logging purposes).
 
-		eventData := &keptnv2.EvaluationTriggeredEventData{}
+		eventData := &keptnv2.RemediationFinishedEventData{}
 		parseKeptnCloudEventPayload(event, eventData)
 
-		return HandleEvaluationTriggeredEvent(myKeptn, event, eventData)
+		// Just log this event
+		return HandleRemediationFinishedEvent(myKeptn, event, eventData)
 
+	// Handle evaluation.finished event type
 	case keptnv2.GetFinishedEventType(keptnv2.EvaluationTaskName): // sk.keptn.event.evaluation.finished
 		log.Printf("Processing Evaluation.Finished Event")
 
@@ -113,7 +129,6 @@ func _main(args []string, env envConfig) int {
 
 	keptnOptions.ConfigurationServiceURL = env.ConfigurationServiceUrl
 
-	log.Printf("[main.go] 19:34 build")
 	log.Printf("[main.go] Starting %s...", ServiceName)
 	log.Printf("[main.go]     on Port = %d; Path=%s", env.Port, env.Path)
 
@@ -197,39 +212,39 @@ func setupAndDebug(myKeptn *keptnv2.Keptn, incomingEvent cloudevents.Event) {
 		JIRA_DETAILS.ProjectKey == "" ||
 		JIRA_DETAILS.IssueType == "" ||
 		KEPTN_DETAILS.KeptnDomain == "" {
-		fmt.Println("[main.go] Missing mandatory input parameters JIRA_BASE_URL and / or JIRA_USERNAME and / or JIRA_API_TOKEN and / or JIRA_PROJECT_KEY and / or JIRA_ISSUE_TYPE and / or KEPTN_DOMAIN.")
+		log.Println("[main.go] Missing mandatory input parameters JIRA_BASE_URL and / or JIRA_USERNAME and / or JIRA_API_TOKEN and / or JIRA_PROJECT_KEY and / or JIRA_ISSUE_TYPE and / or KEPTN_DOMAIN.")
 	}
 
 	if DEBUG {
-		fmt.Println("[main.go] --- Printing JIRA Input Details ---")
-		fmt.Printf("[main.go] Base URL: %s \n", JIRA_DETAILS.BaseURL)
-		fmt.Printf("[main.go] Username: %s \n", JIRA_DETAILS.Username)
-		fmt.Printf("[main.go] Assignee ID: %s \n", JIRA_DETAILS.AssigneeID)
-		fmt.Printf("[main.go] Reporter ID: %s \n", JIRA_DETAILS.ReporterID)
-		fmt.Printf("[main.go] API Token: %s \n", JIRA_DETAILS.APIToken)
-		fmt.Printf("[main.go] Project Key: %s \n", JIRA_DETAILS.ProjectKey)
-		fmt.Printf("[main.go] Issue Type: %s \n", JIRA_DETAILS.IssueType)
-		fmt.Printf("[main.go] Ticket For Problems: %v \n", JIRA_DETAILS.TicketForProblems)
-		fmt.Printf("[main.go] Ticket For Problems: %v \n", JIRA_DETAILS.TicketForEvaluations)
-		fmt.Println("[main.go] --- End Printing JIRA Input Details ---")
+		log.Println("[main.go] --- Printing JIRA Input Details ---")
+		log.Printf("[main.go] Base URL: %s \n", JIRA_DETAILS.BaseURL)
+		log.Printf("[main.go] Username: %s \n", JIRA_DETAILS.Username)
+		log.Printf("[main.go] Assignee ID: %s \n", JIRA_DETAILS.AssigneeID)
+		log.Printf("[main.go] Reporter ID: %s \n", JIRA_DETAILS.ReporterID)
+		log.Printf("[main.go] API Token: %s \n", JIRA_DETAILS.APIToken)
+		log.Printf("[main.go] Project Key: %s \n", JIRA_DETAILS.ProjectKey)
+		log.Printf("[main.go] Issue Type: %s \n", JIRA_DETAILS.IssueType)
+		log.Printf("[main.go] Ticket For Problems: %v \n", JIRA_DETAILS.TicketForProblems)
+		log.Printf("[main.go] Ticket For Problems: %v \n", JIRA_DETAILS.TicketForEvaluations)
+		log.Println("[main.go] --- End Printing JIRA Input Details ---")
 
-		fmt.Printf("[main.go] Dynatrace Tenant: %s \n", dynaTraceTenant)
-		fmt.Printf("[main.go] Keptn Domain: %s \n", KEPTN_DETAILS.KeptnDomain)
-		fmt.Printf("[main.go] Keptn Bridge URL: %s \n", KEPTN_DETAILS.KeptnBridgeURL)
+		log.Printf("[main.go] Dynatrace Tenant: %s \n", dynaTraceTenant)
+		log.Printf("[main.go] Keptn Domain: %s \n", KEPTN_DETAILS.KeptnDomain)
+		log.Printf("[main.go] Keptn Bridge URL: %s \n", KEPTN_DETAILS.KeptnBridgeURL)
 
-	    // At this point, we have all mandatory input params. Proceed
-		fmt.Println("[main.go] Got all input variables. Proceeding...")
+		// At this point, we have all mandatory input params. Proceed
+		log.Println("[main.go] Got all input variables. Proceeding...")
 
 		if JIRA_DETAILS.TicketForProblems {
-		  fmt.Println("[main.go] Will create tickets for problems")
-	    } else {
-		  fmt.Println("[main.go] Will NOT create tickets for problems")
-	    }
+			log.Println("[main.go] Will create tickets for problems")
+		} else {
+			log.Println("[main.go] Will NOT create tickets for problems")
+		}
 
 		if JIRA_DETAILS.TicketForEvaluations {
-		  fmt.Println("[main.go] Will create tickets for evaluations")
-	    } else {
-		  fmt.Println("[main.go] Will NOT create tickets for evaluations")
-	    }
-    }
+			log.Println("[main.go] Will create tickets for evaluations")
+		} else {
+			log.Println("[main.go] Will NOT create tickets for evaluations")
+		}
+	}
 }
