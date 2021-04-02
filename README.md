@@ -37,9 +37,12 @@ kubectl -n keptn create secret generic jira-details \
 --from-literal="jira-create-ticket-for-problems=true" \
 --from-literal="jira-create-ticket-for-evaluations=true"
 ```
+## Set Send Event Flag
+Set `SEND_EVENT` to `true` or `false` in `deploy/service.yaml` to get an alert into your tool (or not).
+Currently supports Dynatrace and the service must have `keptn_project`, `keptn_service` and `keptn_stage` variables set.
 
 ## Set Debug Flag
-Set `DEBUG` to `true` or `false` in `deploy/service.yaml` to get extra log lines:
+Set `DEBUG` to `true` or `false` in `deploy/service.yaml` to get extra log lines.
 
 ## Deploy
 ```
