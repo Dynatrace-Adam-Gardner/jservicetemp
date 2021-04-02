@@ -9,10 +9,10 @@ It will:
 - The JIRA ticket will link directly to the sequence in Keptn's bridge
 - The event will link directly to the sequence in Keptn's bridge
 
-# Quality Evaluations
+## Quality Evaluations
 ![image](https://user-images.githubusercontent.com/13639658/113381981-acaf2f80-93c3-11eb-9ba6-34017e88f2ac.png)
 
-# Remediation Output
+## Remediation Output
 ![image](https://user-images.githubusercontent.com/13639658/113382057-e8e29000-93c3-11eb-92c2-7ec33d76ad9c.png)
 
 ## How To Deploy
@@ -41,7 +41,7 @@ This now uses default kubernetes logging
 - Keptn base URL (eg. http://localhost:8080 or however you've exposed Keptn)
 - Keptn bridge URL (eg. http://localhost:8080/bridge)
 
-### Retrieve User IDs
+### Retrieve User IDs (IMPORTANT)
 JIRA now required the User ID for both the ticket reporter and the assignee.
 
 Retrieve these by clicking your profile icon (top right) then go to profile and grab your ID from the end of the URL:
@@ -64,20 +64,6 @@ kubectl -n keptn create secret generic jira-details \
 --from-literal="jira-create-ticket-for-problems=true" \
 --from-literal="jira-create-ticket-for-evaluations=true"
 ```
-## Set Send Event Flag
+## Sending Events
 Set `SEND_EVENT` to `true` or `false` in `deploy/service.yaml` to get an alert into your tool (or not).
 Currently supports Dynatrace and the service must have `keptn_project`, `keptn_service` and `keptn_stage` variables set.
-
-## Set Debug Flag
-Set `DEBUG` to `true` or `false` in `deploy/service.yaml` to get extra log lines.
-
-## Deploy
-```
-kubectl apply -f deploy/service.yaml
-```
-
-## View Logs
-```
-kubectl get pods -n keptn
-kubectl logs -n keptn jira-service-*-* jira-service
-```
