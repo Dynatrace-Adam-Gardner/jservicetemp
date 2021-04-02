@@ -2,6 +2,9 @@ This service reacts to `evaluation.finished` and `remediation.finished` events.
 
 It will:
 - Create a JIRA ticket with the pertinent details
+- Any labels in the keptn YAML files will be created as labels in JIRA
+- Labels for `keptn_project`, `keptn_service` and `keptn_stage` will be created
+- For quality evaluations, an additional `keptn_result` JIRA label will be created
 - Send an event notification into your tool (currently supports Dynatrace)
 - The JIRA ticket will link directly to the sequence in Keptn's bridge
 - The event will link directly to the sequence in Keptn's bridge
