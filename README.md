@@ -1,6 +1,30 @@
-# jservicetemp
+This service reacts to `evaluation.finished` and `remediation.finished` events.
 
-![image](https://user-images.githubusercontent.com/13639658/113127685-5ffd1480-925c-11eb-8e25-1a2032c3d715.png)
+It will:
+- Create a JIRA ticket with the pertinent details
+- Send an event notification into your tool (currently supports Dynatrace)
+- The JIRA ticket will link directly to the sequence in Keptn's bridge
+- The event will link directly to the sequence in Keptn's bridge
+
+# Quality Evaluations
+![image](https://user-images.githubusercontent.com/13639658/113381981-acaf2f80-93c3-11eb-9ba6-34017e88f2ac.png)
+
+# Remediation Output
+![image](https://user-images.githubusercontent.com/13639658/113382057-e8e29000-93c3-11eb-92c2-7ec33d76ad9c.png)
+
+## How To Deploy
+1. Gather the required information below
+2. Create your `kubectl` secret
+3. Customise the Keptn URL and Keptn Bridge URL in the `deploy/service.yaml` file
+4. If required, disable event sending by setting `SEND_EVENT` to `"false"` in `deploy/service.yaml`
+5. If required, enable debug mode by setting `DEBUG` to `"true"` in `deploy/service.yaml`
+6. Deploy with `kubectl apply -f deploy/service.yaml`
+
+## Debugging
+This now uses default kubernetes logging
+
+1. Note the pod name of the `jira-service` using `kubectl get pods -n keptn`
+2. `kubectl logs -n keptn jira-service-*-* jira-service`
 
 ## Required Information
 
