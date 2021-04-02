@@ -42,7 +42,7 @@ This now uses default kubernetes logging
 - Keptn bridge URL (eg. http://localhost:8080/bridge)
 
 ## Retrieve User IDs (IMPORTANT)
-JIRA now required the User ID for both the ticket reporter and the assignee.
+JIRA now require the User ID for both the ticket reporter and the assignee.
 
 Retrieve these by clicking your profile icon (top right) then go to profile and grab your ID from the end of the URL:
 
