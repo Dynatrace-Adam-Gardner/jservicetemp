@@ -84,7 +84,6 @@ spec:
               value: 'http://1.2.3.4'
             - name: KEPTN_BRIDGE_URL
               value: 'http://1.2.3.4/bridge'
-              optional: true
             - name: SEND_EVENT
               value: 'true'
             - name: DEBUG
