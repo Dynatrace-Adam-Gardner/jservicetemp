@@ -1,13 +1,7 @@
 package main
 
-/* For backwards compatibility, we need to cater for the following legacy events:
-*  - "sh.keptn.events.evaluation-done"
-*  - "sh.keptn.event.problem.open"
-*  - sh.keptn.events.problem"
-*
-*  And the following new event types:
-* - "sh.keptn.event.evaluation.finished"
-* - "sh.keptn.event.jira-service.triggered"
+/*
+ * Reacts to sh.keptn.event.evaluation.finished and sh.keptn.event.remediation.finished
  */
 
 import (
@@ -50,8 +44,8 @@ type JiraDetails struct {
 }
 
 type KeptnDetails struct {
-	KeptnDomain    string
-	KeptnBridgeURL string
+	Domain    string
+	BridgeURL string
 }
 
 var JIRA_DETAILS JiraDetails
@@ -83,8 +77,7 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 		eventData := &keptnv2.RemediationFinishedEventData{}
 		parseKeptnCloudEventPayload(event, eventData)
 
-		// Just log this event
-		return HandleRemediationFinishedEvent(myKeptn, event, eventData)
+		HandleRemediationFinishedEvent(myKeptn, event, eventData)
 
 	// Handle evaluation.finished event type
 	case keptnv2.GetFinishedEventType(keptnv2.EvaluationTaskName): // sk.keptn.event.evaluation.finished
@@ -93,8 +86,7 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 		eventData := &keptnv2.EvaluationFinishedEventData{}
 		parseKeptnCloudEventPayload(event, eventData)
 
-		// Handle evaluation.finished and return any errors
-		return HandleEvaluationFinishedEvent(myKeptn, event, eventData)
+		HandleEvaluationFinishedEvent(myKeptn, event, eventData)
 	}
 
 	return nil
@@ -179,13 +171,13 @@ func setJIRADetails() {
 }
 
 func setKeptnDetails() {
-	KEPTN_DETAILS.KeptnDomain = os.Getenv("KEPTN_DOMAIN")
+	KEPTN_DETAILS.Domain = os.Getenv("KEPTN_DOMAIN")
 
 	// If Bridge URL isn't set in YAML file, default to the KEPTN_DOMAIN which is mandatory
 	if os.Getenv("KEPTN_BRIDGE_URL") == "" {
-		KEPTN_DETAILS.KeptnBridgeURL = os.Getenv("KEPTN_DOMAIN")
+		KEPTN_DETAILS.BridgeURL = os.Getenv("KEPTN_DOMAIN")
 	} else {
-		KEPTN_DETAILS.KeptnBridgeURL = os.Getenv("KEPTN_BRIDGE_URL")
+		KEPTN_DETAILS.BridgeURL = os.Getenv("KEPTN_BRIDGE_URL")
 	}
 }
 
@@ -211,7 +203,7 @@ func setupAndDebug(myKeptn *keptnv2.Keptn, incomingEvent cloudevents.Event) {
 		JIRA_DETAILS.APIToken == "" ||
 		JIRA_DETAILS.ProjectKey == "" ||
 		JIRA_DETAILS.IssueType == "" ||
-		KEPTN_DETAILS.KeptnDomain == "" {
+		KEPTN_DETAILS.Domain == "" {
 		log.Println("[main.go] Missing mandatory input parameters JIRA_BASE_URL and / or JIRA_USERNAME and / or JIRA_API_TOKEN and / or JIRA_PROJECT_KEY and / or JIRA_ISSUE_TYPE and / or KEPTN_DOMAIN.")
 	}
 
@@ -229,8 +221,8 @@ func setupAndDebug(myKeptn *keptnv2.Keptn, incomingEvent cloudevents.Event) {
 		log.Println("[main.go] --- End Printing JIRA Input Details ---")
 
 		log.Printf("[main.go] Dynatrace Tenant: %s \n", dynaTraceTenant)
-		log.Printf("[main.go] Keptn Domain: %s \n", KEPTN_DETAILS.KeptnDomain)
-		log.Printf("[main.go] Keptn Bridge URL: %s \n", KEPTN_DETAILS.KeptnBridgeURL)
+		log.Printf("[main.go] Keptn Domain: %s \n", KEPTN_DETAILS.Domain)
+		log.Printf("[main.go] Keptn Bridge URL: %s \n", KEPTN_DETAILS.BridgeURL)
 
 		// At this point, we have all mandatory input params. Proceed
 		log.Println("[main.go] Got all input variables. Proceeding...")
