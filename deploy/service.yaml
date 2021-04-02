@@ -18,6 +18,7 @@ spec:
       containers:
         - name: jira-service
           image: adamgardnerdt/kjiratemp4:0.8.0
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
